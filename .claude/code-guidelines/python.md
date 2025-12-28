@@ -74,6 +74,95 @@ class ProductConverter:
         }
 ```
 
+## Python Class Design Guidelines: The "No-Init" Pattern
+
+Quick description: Separate data definition from object construction. Never put business logic, I/O, or side effects inside `__init__`.
+
+### Core Principle
+
+Separate **Data Definition** from **Object Construction**. Use dataclasses for state and factory methods for construction logic.
+
+### Implementation Rules
+
+1. **Use Dataclasses for State**: Define the class using `@dataclass`. Rely on the auto-generated `__init__` which only performs simple attribute assignment.
+2. **Factory Methods for Logic**: If any calculation, validation, transformation, or I/O is needed to create the object, place this logic in a `@classmethod` factory (e.g., `create()`, `open()`, `from_config()`).
+3. **Strong Typing**: Use `typing.NewType` for primitive attributes (like `int` or `str`) that have specific domain meanings (e.g., `FileDescriptor`, `UserId`) to ensure the dataclass only accepts valid data.
+
+✅ DO:
+
+```python
+from dataclasses import dataclass
+from typing import NewType, Self
+
+# 1. Use NewType for domain safety
+FileDescriptor = NewType("FileDescriptor", int)
+UserId = NewType("UserId", str)
+
+@dataclass
+class FileReader:
+    # 2. Dataclass handles state definition (pure, no logic)
+    _fd: FileDescriptor
+
+    # 3. Classmethod handles construction logic & side effects
+    @classmethod
+    def open(cls, path: str) -> Self:
+        # Perform I/O or logic here
+        raw_fd = some_io_library.open(path)
+        # Pass clean, validated data to the default __init__
+        return cls(FileDescriptor(raw_fd))
+
+    def read(self) -> str:
+        # Instance methods use the valid state
+        return some_io_library.read(self._fd)
+
+@dataclass
+class User:
+    user_id: UserId
+    name: str
+    email: str
+
+    @classmethod
+    def from_database(cls, user_id: str) -> Self:
+        # Database query and validation happens here
+        data = database.query("SELECT * FROM users WHERE id = ?", user_id)
+        return cls(
+            user_id=UserId(data["id"]),
+            name=data["name"],
+            email=data["email"]
+        )
+
+    @classmethod
+    def create(cls, name: str, email: str) -> Self:
+        # Validation and ID generation happens here
+        if not email or "@" not in email:
+            raise ValueError("Invalid email")
+        user_id = UserId(generate_uuid())
+        return cls(user_id=user_id, name=name, email=email)
+```
+
+❌ DON'T:
+
+```python
+class FileReader:
+    def __init__(self, path: str):
+        # Don't put I/O in __init__
+        self._fd = some_io_library.open(path)
+
+    def read(self) -> str:
+        return some_io_library.read(self._fd)
+
+class User:
+    def __init__(self, name: str, email: str, user_id: str | None = None):
+        # Don't put validation and business logic in __init__
+        if not email or "@" not in email:
+            raise ValueError("Invalid email")
+
+        # Don't put ID generation in __init__
+        self.user_id = user_id or generate_uuid()
+        self.name = name
+        self.email = email
+```
+
 ## Type Annotations
 
 Quick description: Always use type hints for function parameters and return values. Use `TypedDict` or `Pydantic` for structured dictionaries.
