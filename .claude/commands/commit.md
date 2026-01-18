@@ -9,14 +9,24 @@ To create a commit, just type:
 /commit
 ```
 
+Or with options:
+
+```
+/commit text-only
+/commit spilt
+```
+
 ## What This Command Does
 
-1. Checks which files are staged with `git status`
-2. If 0 files are staged, automatically adds all modified and new files with `git add`
-3. Performs a `git diff` to understand what changes are being committed
-4. Analyzes the diff to determine if multiple distinct logical changes are present
-5. If multiple distinct changes are detected, suggests breaking the commit into multiple smaller commits
-6. For each commit (or the single commit if not split), creates a commit message using emoji conventional commit format
+1. If no parameters are specified, a single, complete commit will be automatically generated and committed without splitting the commit.
+  1.1. If the `spilt` parameter is present, the commit will be split and committed.
+  1.2. If the `text-only` parameter is present, only a message will be generated, and no automatic commit will be performed.
+2. Checks which files are staged with `git status`
+3. If 0 files are staged, automatically adds all modified and new files with `git add`
+4. Performs a `git diff` to understand what changes are being committed
+5. Analyzes the diff to determine if multiple distinct logical changes are present
+6. If multiple distinct changes are detected, suggests breaking the commit into multiple smaller commits
+7. For each commit (or the single commit if not split), creates a commit message using emoji conventional commit format
 
 ## Best Practices for Commits
 
@@ -148,5 +158,5 @@ Example of splitting commits:
 - Before committing, the command will review the diff to identify if multiple commits would be more appropriate
 - If suggesting multiple commits, it will help you stage and commit the changes separately
 - Always reviews the commit diff to ensure the message matches the changes
-- Use English to describe the commit message, and use Chinese to reply to users
+- Write a commit message in en_US (English)
 - Do NOT add Claude co-authorship footer to commits
