@@ -13,13 +13,13 @@ Or with options:
 
 ```
 /commit text-only
-/commit spilt
+/commit split
 ```
 
 ## What This Command Does
 
 1. If no parameters are specified, a single, complete commit will be automatically generated and committed without splitting the commit.
-  1.1. If the `spilt` parameter is present, the commit will be split and committed.
+  1.1. If the `split` parameter is present, the commit will be split and committed.
   1.2. If the `text-only` parameter is present, only a message will be generated, and no automatic commit will be performed.
 2. Checks which files are staged with `git status`
 3. If 0 files are staged, automatically adds all modified and new files with `git add`
